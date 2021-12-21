@@ -59,11 +59,17 @@ class Biquad_v2(object):
         return y
 
 class aWeightingFilter(object):
-    def __init__(self):
-        self.biquad_list = [Biquad_v2(1,  2, 1, 0.2246, -0.0126), \
-                            Biquad_v2(1, -2, 1, 1.8939, -0.8952), \
-                            Biquad_v2(1, -2, 1, 1.9946, -0.9946)]
-        self.scale_values = [0.2343, 1, 1, 1]
+    def __init__(self, Sr):
+        if Sr == 16000:
+            self.biquad_list = [Biquad_v2(0.4976,  0.9951, 0.4976, -0.8216, -0.1687), \
+                                Biquad_v2(0.9302, -1.8604, 0.9302,  1.7055, -0.7160), \
+                                Biquad_v2(0.9920, -1.9841, 0.9920,  1.9839, -0.9840)]
+            self.scale_values = [1, 1, 1, 1.1575]
+        elif Sr == 48000:
+            self.biquad_list = [Biquad_v2(1,  2, 1, 0.2246, -0.0126), \
+                                Biquad_v2(1, -2, 1, 1.8939, -0.8952), \
+                                Biquad_v2(1, -2, 1, 1.9946, -0.9946)]
+            self.scale_values = [0.2343, 1, 1, 1]
         self.cascade_size = 3
 
         return
@@ -87,16 +93,16 @@ class aWeightingFilter(object):
 def main(audio_file):
     freq, sig = wavfile.read(audio_file)
     sig = sig / (2 ** 15)
-    if freq != 48000:
-        print('input audio_file\'s sample rate should be 48000')
+    if freq != 16000 | freq != 48000:
+        print('input audio_file\'s sample rate should be 16000/48000')
         return
     A_weighting = aWeightingFilter()
     data = sig
     output = np.zeros(len(sig))
     for i in tqdm(range(len(sig))):
         output[i] = A_weighting.step(data[i])
-    print('src sig rms : %fdB' % (RMS(sig)))
-    print('filterd sig rms : %fdB' % (RMS(output)))
+    print('A Loudness : %fdB' % (RMS(output)))
+    output *= (2 ** 15)
     wavfile.write("./out.wav", freq, output.astype(np.int16))
 
     return
