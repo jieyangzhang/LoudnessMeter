@@ -93,10 +93,10 @@ class aWeightingFilter(object):
 def main(audio_file):
     freq, sig = wavfile.read(audio_file)
     sig = sig / (2 ** 15)
-    if freq != 16000 | freq != 48000:
+    if freq != 16000 and freq != 48000:
         print('input audio_file\'s sample rate should be 16000/48000')
         return
-    A_weighting = aWeightingFilter()
+    A_weighting = aWeightingFilter(freq)
     data = sig
     output = np.zeros(len(sig))
     for i in tqdm(range(len(sig))):
